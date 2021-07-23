@@ -1,27 +1,38 @@
 ## Microcontroller
 
 - STM32 Nucleo-F411RE high performance.
-- On pins PA6, PA7 and PB0 there is LED1, LED2, LED3 which are off in high state and on in low state. 
 
 ## Assumption
 
-We are generating a PWM signal which is useful to control the brightness of the LED. 
+After the servo has completed its task, the system enters stop mode to reduce power consumption.
 
 ### Configuration
-- We use a general purpose TIM-3 16-bit counter connected to the APB2 bus. We choose Internal Clock as the clock source.
-- Set the pin functions to, respectively: TIM3_CH1, TIM3_CH2, and TIM3_CH3. We name them LED1, LED2 and LED3.- We want a frequency of 100 Hz by setting Prescaler to 79 and the value for Counter Period to 9999.
-- In CubeMX, configure TIM3 and set the channels to, respectively: PWM Generation CH1, PWM Generation CH2, and PWM Generation CH3. 
+
+- On pin PA5 there is LD2 (LED) which are off in high state and on in low state. 
+- On pin PC13 there is GPIO Mode as external interrupt.
+- On PA0 there is sensor i.e. a servo actuator.
 
 ### Software: 
 
-- We use the interrupt reported when the main timer counter overflows, that is, the HAL_TIM_PeriodElapsedCallback function to change the state of LED2.
-- The HAL_TIM_OC_Start_IT function is used to start the diode on the Nucleo board. 
-- The HAL_TIM_PWM_Start function is used for the other external diodes, and bypassing "_IT" will ensure that interrupts are not reported.
+- The security setting that if we are not in the stop to it we go into it:
+```
+if(StopModeFlag == 0)
+	  {
+		  StopModeFlag = 1;
+		  HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+	  }
+```
+- HAL_GPIO_EXTI_Callback() - Handling the interrupt involves reconfiguring the clocks after the microcontroller is up and the tasks in the while loop are completed.
+- Function for setting the servo to a preset position:
+ - Servo_SetAngle() - by the given integer angle,
+ - Servo_SetAngleFine() - by the given "fine" fractional angle.
 
 ## Realisation
-We will not see the LEDs blinking, but we will see that they glow with different brightness.
- 
-The dependence of the LEDs' brightness on the PWM filling is not linear. In order to get the effect like in the picture you need to set Pulse values, which are related to successive channels: 50, 500 and 5000.
+To reduce power consumption in stop mode, in addition to disabling the core, we disable the fast oscillators as well as the peripherals that are powered by those oscillators, so they will not work. The interrupts from the peripherals will not work. 
 
-To get the effect of blinking leds was easy to verify with the "naked eye" the frequency of the timer should be low around 1 Hz. 
+The regulator and slow oscillators such as RTC, watchdog will work.
+
+Waking up the microcontroller is possible via external interrupt or wakeup event. For this purpose, the B1 as EXTI13 button was used to wake up the microcontroller from the STOP state.
+
+The internal RAM along with the registers is preserved. We go down in power consumption, but we do not lose the program. 
 
