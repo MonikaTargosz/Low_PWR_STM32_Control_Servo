@@ -2,6 +2,8 @@
 
 - STM32 Nucleo-F411RE high performance.
 
+![image](https://user-images.githubusercontent.com/37025393/127035113-962d626d-cf59-430f-8785-a272a55102f6.png)
+
 ## Assumption
 
 After the servo has completed its task, the system enters stop mode to reduce power consumption.
@@ -35,4 +37,7 @@ The regulator and slow oscillators such as RTC, watchdog will work.
 Waking up the microcontroller is possible via external interrupt or wakeup event. For this purpose, the B1 as EXTI13 button was used to wake up the microcontroller from the STOP state.
 
 The internal RAM along with the registers is preserved. We go down in power consumption, but we do not lose the program. 
+
+![image](https://user-images.githubusercontent.com/37025393/127035561-c4081229-06e0-4482-a321-0931c63a1ebe.png)
+
 
